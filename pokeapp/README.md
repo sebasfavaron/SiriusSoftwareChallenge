@@ -1,4 +1,4 @@
-Frontend for Emi Labs challenge
+Frontend for Sirius Software challenge
 
 ## Setup
 

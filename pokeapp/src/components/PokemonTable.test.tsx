@@ -1,18 +1,30 @@
 import { render, screen } from '@testing-library/react';
-import { Pokemon } from '../types';
+import { SinglePokemon } from '../types';
 import { PokemonTable } from './PokemonTable';
 
 describe('PokemonTable', () => {
   it('should display the correct amount of rows', () => {
     // Given
-    const pokemon: Pokemon[] = [
+    const pokemon: SinglePokemon[] = [
       {
         name: 'John',
-        url: 'https://pokeapi.co/api/v2/pokemon/1/',
+        id: 1,
+        base_experience: 1,
+        abilities: [],
+        sprites: {
+          front_default: '',
+        },
+        foundAt: [],
       },
       {
         name: 'Jane',
-        url: 'https://pokeapi.co/api/v2/pokemon/2/',
+        id: 2,
+        base_experience: 2,
+        abilities: [],
+        sprites: {
+          front_default: '',
+        },
+        foundAt: [],
       },
     ];
 
