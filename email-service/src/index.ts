@@ -1,17 +1,20 @@
+import sgMail from '@sendgrid/mail';
 import cors, { CorsOptions } from 'cors';
 import dotenv from 'dotenv';
 import express, { Express, Request, Response } from 'express';
-
-dotenv.config();
-
 import formData from 'form-data';
 import Mailgun from 'mailgun.js';
 import { mailStatsHandler, sendMailHandler } from './mailHandler';
+
+dotenv.config();
+
+// Set up mail services
 const mailgun = new Mailgun(formData);
 export const mgClient = mailgun.client({
   username: 'api',
   key: process.env.MAILGUN_API_KEY!,
 });
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
 export const app: Express = express();
 const port = process.env.PORT;

@@ -1,5 +1,7 @@
 Backend for Sirius Software challenge
 
+This server assumes that if Sendgrid or Mailgun respond with a `200 Queued` then the mail was sent, even if it's still enqueued.
+
 ## Setup
 
 - `nvm use`
