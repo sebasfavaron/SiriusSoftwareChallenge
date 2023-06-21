@@ -9,6 +9,7 @@ import {
   authMiddleware,
   loginHandler,
   logoutHandler,
+  registerAdminHandler,
   registerHandler,
 } from './userHandler';
 
@@ -47,13 +48,15 @@ app.use(express.json());
 
 app.post('/register', registerHandler);
 
+app.post('/register-admin', authMiddleware, registerAdminHandler);
+
 app.post('/login', loginHandler);
 
 app.post('/logout', authMiddleware, logoutHandler);
 
-app.get('/stats', mailStatsHandler); // TODO: add auth and check admin role
-
 app.post('/send-mail', authMiddleware, sendMailHandler);
+
+app.get('/stats', authMiddleware, mailStatsHandler);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {

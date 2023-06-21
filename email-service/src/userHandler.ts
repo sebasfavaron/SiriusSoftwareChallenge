@@ -3,9 +3,11 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 // Database to store registered users (in-memory representation)
-const usersDB: { [username: string]: string } = {};
+export const usersDB: {
+  [username: string]: { password: string; role: string; mailsSent: number };
+} = {};
 
-export const registerHandler = async (req: Request, res: Response) => {
+const registerHelper = async (req: Request, res: Response, role: string) => {
   const { username, password } = req.body;
 
   // Check if the username is already taken
@@ -21,19 +23,37 @@ export const registerHandler = async (req: Request, res: Response) => {
     }
 
     // Store the username and hashed password in the database
-    usersDB[username] = hash;
+    usersDB[username] = { password: hash, role, mailsSent: 0 };
     res.status(201).json({ message: 'User registered successfully' });
   });
+};
+
+export const registerHandler = async (req: Request, res: Response) => {
+  registerHelper(req, res, 'user');
+};
+
+export const registerAdminHandler = async (req: Request, res: Response) => {
+  const { role } = req.user!;
+  if (role !== 'admin') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  registerHelper(req, res, 'admin');
 };
 
 export const loginHandler = async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   // Check if the username exists in the database
-  const hashedPassword = usersDB[username];
+  const user = usersDB[username];
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+  const hashedPassword = user.password;
   if (!hashedPassword) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
+  const role = usersDB[username].role;
 
   // Compare the provided password with the stored hashed password
   bcrypt.compare(password, hashedPassword, (err, result) => {
@@ -42,8 +62,8 @@ export const loginHandler = async (req: Request, res: Response) => {
     }
 
     // Generate a JWT token with a 1-hour expiration
-    const token = jwt.sign({ username }, process.env.SECRET_KEY!, {
-      expiresIn: '20s',
+    const token = jwt.sign({ username, role }, process.env.SECRET_KEY!, {
+      expiresIn: '1h',
     });
     res.json({ token });
   });
@@ -59,9 +79,7 @@ export const logoutHandler = async (req: Request, res: Response) => {
 
   // Add the token to the invalidated tokens list
   invalidatedTokens.push({ token, exp });
-  console.log('Invalidated tokens: ', invalidatedTokens);
   removeExpiredTokens(); // TODO: move to a cron job
-  console.log('Invalidated tokens after cleanup: ', invalidatedTokens);
 
   res.json({ message: 'Logout successful' });
 };
