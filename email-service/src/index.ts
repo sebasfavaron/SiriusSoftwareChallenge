@@ -5,10 +5,10 @@ import express, { Express, Request, Response } from 'express';
 import formData from 'form-data';
 import Mailgun from 'mailgun.js';
 import { mailStatsHandler, sendMailHandler } from './mailHandler';
+import { setUpDatabase } from './userDB';
 import {
   authMiddleware,
   loginHandler,
-  logoutHandler,
   registerAdminHandler,
   registerHandler,
 } from './userHandler';
@@ -23,8 +23,8 @@ export const mgClient = mailgun.client({
 });
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
-export const app: Express = express();
-const port = process.env.PORT;
+// Set up MongoDB database
+setUpDatabase();
 
 // Extend Express Request type to include user property
 declare global {
@@ -34,6 +34,9 @@ declare global {
     }
   }
 }
+
+export const app: Express = express();
+const port = process.env.PORT;
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Mail server is running.');
@@ -51,8 +54,6 @@ app.post('/register', registerHandler);
 app.post('/register-admin', authMiddleware, registerAdminHandler);
 
 app.post('/login', loginHandler);
-
-app.post('/logout', authMiddleware, logoutHandler);
 
 app.post('/send-mail', authMiddleware, sendMailHandler);
 

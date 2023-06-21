@@ -2,7 +2,7 @@ import sgMail from '@sendgrid/mail';
 import { Request, Response } from 'express';
 import { mgClient } from '.';
 import { bodyHtml, bodyText, subjectText } from './mailTemplate';
-import { usersDB } from './userHandler';
+import { getUserByUsername, getUsersDailyMailsSent } from './userDB';
 
 export const sendMailHandler = async (req: Request, res: Response) => {
   let { name = '', from = '' } = req.body;
@@ -10,36 +10,50 @@ export const sendMailHandler = async (req: Request, res: Response) => {
     name = ' ' + name;
   }
   const { username } = req.user!;
+  let dbUser = null;
 
   try {
-    // TODO: check user's JWT token validity
-    // TODO: check if user is under daily quota
-    const mailgunResponse = await sendMailMailgun(
+    dbUser = await getUserByUsername(username);
+    if (dbUser === null) {
+      return res
+        .status(401)
+        .send({ result: 'Invalid credentials ((no such username))' });
+    } else if (dbUser.dailyMailsSent >= +process.env.DAILY_MAIL_QUOTA!) {
+      return res.status(401).send({
+        result: 'Unauthorized. Daily mail quota exceeded.',
+        dailyMailsSent: dbUser.dailyMailsSent,
+      });
+    }
+
+    const sendgridResponse = await sendMailSendgrid(
       name,
-      from || `${process.env.MAILGUN_VERIFIED_SENDER!}`,
+      from || process.env.SENDGRID_VERIFIED_SENDER!,
       5000
     );
-
-    usersDB[username].mailsSent += 1;
+    await dbUser.incrementDailyMailsSent();
     res.send({
-      result: 'Mail sent successfully via mailgun.',
-      response: mailgunResponse,
+      result: 'Mail sent successfully via sendgrid.',
+      response: sendgridResponse,
     });
-  } catch (e) {
+  } catch (error) {
+    if (dbUser === null) {
+      return res
+        .status(401)
+        .send({ result: 'Invalid credentials ((no such username))' });
+    }
     try {
-      const sendgridResponse = await sendMailSendgrid(
+      const mailgunResponse = await sendMailMailgun(
         name,
-        from || process.env.SENDGRID_VERIFIED_SENDER!,
+        from || process.env.MAILGUN_VERIFIED_SENDER!,
         5000
       );
-
-      usersDB[username].mailsSent += 1;
+      await dbUser.incrementDailyMailsSent();
       res.send({
-        result: 'Mail sent successfully via sendgrid.',
-        response: sendgridResponse,
+        result: 'Mail sent successfully via mailgun.',
+        response: mailgunResponse,
       });
-    } catch (e) {
-      res.status(500).send({ result: `Error sending mail. ${e}` });
+    } catch (error) {
+      res.status(500).send({ result: `Error sending mail. ${error}` });
     }
   }
 };
@@ -100,22 +114,17 @@ const sendMailSendgrid = async (
 
 export const mailStatsHandler = async (req: Request, res: Response) => {
   try {
-    //TODO
-    // 1. Check if user is admin
-    // 2. Get list of users and daily sent mails
-    // 3. Return list of users and daily sent mails
     const isAdmin = req.user?.role === 'admin';
     if (!isAdmin) {
       return res.status(401).send({ result: 'Unauthorized' });
     }
 
+    const usersDailyMailsSent = await getUsersDailyMailsSent();
+
     res.send({
-      result: Object.keys(usersDB).map((user) => ({
-        user,
-        mailsSent: usersDB[user].mailsSent,
-      })),
+      result: usersDailyMailsSent,
     });
-  } catch (e) {
-    res.status(500).send({ result: 'Error sending stats.' + e });
+  } catch (error) {
+    res.status(500).send({ result: `Error sending stats. ${error}` });
   }
 };
