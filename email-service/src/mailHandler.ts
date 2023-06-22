@@ -114,11 +114,6 @@ const sendMailSendgrid = async (
 
 export const mailStatsHandler = async (req: Request, res: Response) => {
   try {
-    const isAdmin = req.user?.role === 'admin';
-    if (!isAdmin) {
-      return res.status(401).send({ result: 'Unauthorized' });
-    }
-
     const usersDailyMailsSent = await getUsersDailyMailsSent();
 
     res.send({

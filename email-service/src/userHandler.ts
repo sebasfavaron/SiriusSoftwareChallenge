@@ -97,3 +97,12 @@ export const authMiddleware = async (
     next();
   });
 };
+
+export const isAdmin = async (req: Request, res: Response, next: Function) => {
+  const isAdmin = req.user?.role === 'admin';
+  if (!isAdmin) {
+    return res.status(403).send({ result: 'Access forbidden' });
+  }
+
+  next();
+};

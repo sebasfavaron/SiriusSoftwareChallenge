@@ -8,6 +8,7 @@ import { mailStatsHandler, sendMailHandler } from './mailHandler';
 import { setUpDatabase } from './userDB';
 import {
   authMiddleware,
+  isAdmin,
   loginHandler,
   registerAdminHandler,
   registerHandler,
@@ -57,7 +58,7 @@ app.post('/login', loginHandler);
 
 app.post('/send-mail', authMiddleware, sendMailHandler);
 
-app.get('/stats', authMiddleware, mailStatsHandler);
+app.get('/stats', authMiddleware, isAdmin, mailStatsHandler);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {

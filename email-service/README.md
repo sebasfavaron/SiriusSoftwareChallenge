@@ -1,6 +1,25 @@
-Backend for Sirius Software challenge
+# Backend for Sirius Software challenge
 
-This server assumes that if Sendgrid or Mailgun respond with a `200 Queued` then the mail was sent, even if it's still enqueued.
+Note: this server assumes that if Sendgrid or Mailgun respond with a `200 Queued` then the mail was sent, even if it's still enqueued on their side.
+
+## Mail services
+
+Sendgrid is used as the main service and Mailgun as its failover.
+Limitation: on test accounts on both services the sender email is fixed so it cannot be set to the user's personal email (hence why it will not be persisted on a database either)
+
+## Auth
+
+There are two auth routes, the one gives the new user the 'admin' role requires an admin to call it (a JWT token asociated with an admin to be linked to the request).
+On register, the new user (with its salted and hashed password and the corresponding role) is persisted in the database to be later fetched on login.
+On login, the database is looked for a match. In case of finding one, a JWT token with an expiration of one hour is signed (with username and role inside).
+This token is later used in an auth middleware that verifies its validity and expiration date. It then forwards the user, role and token to the protected route. This helps the route check for admin role in case it needs it (like GET /stats does)
+
+##
+
+## DB
+
+This project uses MongoAtlas' mongodb, accessed via the ODM `mongoose`.
+In MongoAtlas a daily trigger is set to reset the quota for every user (runs every day at 24hs UTC-0).
 
 ## Setup
 
@@ -23,3 +42,12 @@ This server assumes that if Sendgrid or Mailgun respond with a `200 Queued` then
 
 - `npm run build`
 - `npm start`
+
+## Backlog
+
+- Logging
+- Alerts
+- Mongo Atlas
+  - ACL (currently just one admin)
+  - Backup
+- Development/production environments (separate dbs, code branches, mailing service accounts)
