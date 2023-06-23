@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { PokemonTable } from './components/PokemonTable';
-import { usePokemonFull, usePokemons } from './usePokemons';
+import { usePokemon, usePokemonFull } from './usePokemon';
 
 export default function ListView() {
   const [limit, setLimit] = useState<number>(3);
-  const [offset, setOffset] = useState<number>(0);
-  const { pokemonIds, pokemonIdsStatus } = usePokemons({
+  const { pokemonIds, pokemonIdsStatus } = usePokemon({
     limit,
-    offset,
   });
   const { pokemonData, pokemonDataStatus } = usePokemonFull({
     names: pokemonIds?.results.map((p) => p.name) || [],

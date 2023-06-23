@@ -1,22 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { EvolutionChain, Pokemon, SinglePokemon } from './types';
 
-export const usePokemons = ({
-  limit,
-  offset,
-}: {
-  limit?: number;
-  offset?: number;
-}) => {
+export const usePokemon = ({ limit }: { limit?: number }) => {
   const { data: pokemonIds, status: pokemonIdsStatus } = useQuery<Pokemon>({
-    queryKey: ['pokemon', limit, offset],
+    queryKey: ['pokemon', limit],
     queryFn: async () => {
       const paramsObj: { [key: string]: string } = {};
       if (limit !== undefined) {
         paramsObj['limit'] = limit.toString();
-      }
-      if (offset !== undefined) {
-        paramsObj['offset'] = offset.toString();
       }
 
       const response = await fetch(

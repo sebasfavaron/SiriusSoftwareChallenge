@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router-dom';
-import { PokemonCard } from './components/PokemonTable';
+import { PokemonCard } from './components/PokemonCard';
 import { SinglePokemon } from './types';
-import { useEvolutionChain } from './usePokemons';
+import { useEvolutionChain } from './usePokemon';
 
 export default function PokemonDetail() {
   const location = useLocation();
@@ -12,7 +12,11 @@ export default function PokemonDetail() {
   });
   return (
     <div className='mt-2'>
-      <PokemonCard singlePokemon={pokemon} evolutions={evolutionData} />
+      <PokemonCard
+        className='w-96'
+        singlePokemon={pokemon}
+        evolutions={evolutionData}
+      />
     </div>
   );
 }
