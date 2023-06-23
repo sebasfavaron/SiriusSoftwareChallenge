@@ -82,7 +82,7 @@ export const userGuard: UserGuardType = {
 
   isAuthorized: {
     hasBearer: (authHeader?: string): boolean => {
-      return !authHeader || !authHeader.startsWith('Bearer ');
+      return !!authHeader && authHeader.startsWith('Bearer ');
     },
     skipTokenVerification: (): boolean => {
       return false;
@@ -113,14 +113,17 @@ export const authMiddleware = async (
     next();
   } else {
     if (!authHeader) {
-      console.log('no authHeader');
       return res
         .status(401)
         .json({ error: 'Unauthorized ((missing Bearer Token))' });
     }
     const token = authHeader.split(' ')[1];
-    try {
-      const decoded = jwt.verify(token, process.env.SECRET_KEY!) as any;
+    jwt.verify(token, process.env.SECRET_KEY!, (err: any, decoded: any) => {
+      if (err) {
+        return res
+          .status(401)
+          .json({ error: 'Unauthorized ((invalid token))' });
+      }
 
       // Check if the token has expired
       if (decoded.exp && Date.now() >= decoded.exp * 1000) {
@@ -131,9 +134,7 @@ export const authMiddleware = async (
       req.user = { ...decoded, token };
 
       next();
-    } catch (error) {
-      return res.status(401).json({ error: 'Unauthorized ((invalid token))' });
-    }
+    });
   }
 };
 

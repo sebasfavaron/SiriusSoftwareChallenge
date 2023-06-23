@@ -33,4 +33,3 @@ This is a basic site with a `/pokemon` route to load all pokemon and a `/pokemon
 - Development/production environments (separate code branches, deployed sites)
 - Tests
   - More unit tests to components
-- Deployment

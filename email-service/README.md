@@ -1,6 +1,7 @@
 # Backend for Sirius Software challenge
 
 Note: this server assumes that if Sendgrid or Mailgun respond with a `200 Queued` then the mail was sent, even if it's still enqueued on their side.
+Note2: on server responses i put some debug comments ((like this)). This would not usually be shown to the user for security purposes
 
 ## Mail services
 
