@@ -67,6 +67,29 @@ export const loginHandler = async (req: Request, res: Response) => {
   });
 };
 
+export type UserGuardType = {
+  isAuthenticated(req: Request): boolean;
+  isAuthorized: {
+    hasBearer: (authHeader?: string) => boolean;
+    skipTokenVerification: () => boolean;
+  };
+};
+
+export const userGuard: UserGuardType = {
+  isAuthenticated(req: Request): boolean {
+    return req.user?.role === 'admin';
+  },
+
+  isAuthorized: {
+    hasBearer: (authHeader?: string): boolean => {
+      return !authHeader || !authHeader.startsWith('Bearer ');
+    },
+    skipTokenVerification: (): boolean => {
+      return false;
+    },
+  },
+};
+
 export const authMiddleware = async (
   req: Request,
   res: Response,
@@ -74,33 +97,48 @@ export const authMiddleware = async (
 ) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!userGuard.isAuthorized.hasBearer(authHeader)) {
     return res
       .status(401)
       .json({ error: 'Unauthorized ((missing Bearer Token))' });
   }
 
-  const token = authHeader.split(' ')[1];
-  jwt.verify(token, process.env.SECRET_KEY!, (err: any, decoded: any) => {
-    if (err) {
+  if (userGuard.isAuthorized.skipTokenVerification()) {
+    req.user = {
+      username: 'user',
+      role: 'user',
+      exp: 123456,
+      token: 'fake-token',
+    };
+    next();
+  } else {
+    if (!authHeader) {
+      console.log('no authHeader');
+      return res
+        .status(401)
+        .json({ error: 'Unauthorized ((missing Bearer Token))' });
+    }
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, process.env.SECRET_KEY!) as any;
+
+      // Check if the token has expired
+      if (decoded.exp && Date.now() >= decoded.exp * 1000) {
+        return res.status(401).json({ error: 'Token expired' });
+      }
+
+      // Add the decoded payload to the request object
+      req.user = { ...decoded, token };
+
+      next();
+    } catch (error) {
       return res.status(401).json({ error: 'Unauthorized ((invalid token))' });
     }
-
-    // Check if the token has expired
-    if (decoded.exp && Date.now() >= decoded.exp * 1000) {
-      return res.status(401).json({ error: 'Token expired' });
-    }
-
-    // Add the decoded payload to the request object
-    req.user = { ...decoded, token };
-
-    next();
-  });
+  }
 };
 
 export const isAdmin = async (req: Request, res: Response, next: Function) => {
-  const isAdmin = req.user?.role === 'admin';
-  if (!isAdmin) {
+  if (!userGuard.isAuthenticated(req)) {
     return res.status(403).send({ result: 'Access forbidden' });
   }
 

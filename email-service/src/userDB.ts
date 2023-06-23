@@ -9,7 +9,7 @@ interface IUser extends Document {
   incrementDailyMailsSent(): Promise<void>;
 }
 
-const userSchema = new Schema<IUser>({
+export const userSchema = new Schema<IUser>({
   username: { type: String, required: true },
   password: { type: String, required: true },
   role: { type: String, required: true },
@@ -23,17 +23,15 @@ userSchema.methods.incrementDailyMailsSent = async function () {
 
 const User = mongoose.model<IUser>('User', userSchema);
 
-export const setUpDatabase = () => {
+export const setUpDatabase = async () => {
   // Connect to MongoDB
-  mongoose.connect(process.env.MONGODB_URI!, {});
+  await mongoose.connect(process.env.MONGODB_URI!, {});
   const db = mongoose.connection;
 
   db.on('error', console.error.bind(console, 'MongoDB connection error:'));
   db.once('open', () => {
     console.log('Connected to MongoDB');
   });
-
-  return db;
 };
 
 export async function createUser(
@@ -69,17 +67,4 @@ export async function updateUser(
 
 export async function deleteUser(userId: string): Promise<void> {
   await User.findByIdAndDelete(userId).exec();
-}
-
-// TODO: run this is a cron job
-export async function resetAllUsersDailyMailsSent() {
-  try {
-    const result = await User.updateMany(
-      {},
-      { $set: { dailyMailsSent: 0 } }
-    ).exec();
-    console.log(`Reset dailyMailsSent count for ${result.modifiedCount} users`);
-  } catch (error) {
-    console.error(`Error resetting all dailyMailsSent: ${error}`);
-  }
 }

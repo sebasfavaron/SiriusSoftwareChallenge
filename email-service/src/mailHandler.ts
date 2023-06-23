@@ -80,7 +80,11 @@ async function sendRequestWithTimeout<T>(
   });
 }
 
-const sendMailMailgun = async (name: string, from: string, timeout: number) => {
+export const sendMailMailgun = async (
+  name: string,
+  from: string,
+  timeout: number
+) => {
   return sendRequestWithTimeout(
     async () =>
       mgClient.messages.create(process.env.MAILGUN_DOMAIN!, {
@@ -94,7 +98,7 @@ const sendMailMailgun = async (name: string, from: string, timeout: number) => {
   );
 };
 
-const sendMailSendgrid = async (
+export const sendMailSendgrid = async (
   name: string,
   from: string,
   timeout: number

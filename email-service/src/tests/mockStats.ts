@@ -1,10 +1,10 @@
 export const mockStats = [
   {
-    id: '5a271a1368adf47eb31fe683',
-    emailsSent: 0,
+    username: 'user1',
+    dailyMailsSent: 100,
   },
   {
-    id: '5a272e9068adf47eb31fe789',
-    emailsSent: 1,
+    username: 'user2',
+    dailyMailsSent: 30,
   },
 ];
