@@ -1,6 +1,6 @@
 # Frontend for Sirius Software challenge
 
-This is a basic site with a `/pokemon` route to load all pokemon and a `/pokemon/:id` to see more details about that pokemon, in particular its evolution path
+This is a basic site with a `/pokemon` route to load all pokemon and a `/pokemon/:id` to see more details about that pokemon, in particular its evolutions.
 
 ## Setup
 

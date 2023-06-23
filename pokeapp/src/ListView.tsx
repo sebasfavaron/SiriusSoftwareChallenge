@@ -14,10 +14,17 @@ export default function ListView() {
   return (
     <div className='mt-2'>
       <button onClick={() => setLimit((limit) => limit + 3)}>More</button>
-      <div>{`All (${pokemonIds?.count})`}</div>
-      <div>
-        <PokemonTable pokemon={pokemonData} pokemonStatus={pokemonDataStatus} />
-      </div>
+      <div>{`Showing ${limit} of ${pokemonIds?.count}`}</div>
+      {pokemonIdsStatus === 'loading' && <div>Loading...</div>}
+      {pokemonIdsStatus === 'error' && <div>Error</div>}
+      {pokemonIdsStatus === 'success' && (
+        <div>
+          <PokemonTable
+            pokemon={pokemonData}
+            pokemonStatus={pokemonDataStatus}
+          />
+        </div>
+      )}
     </div>
   );
 }
