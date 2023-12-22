@@ -3,10 +3,9 @@
 Note: this server assumes that if Sendgrid or Mailgun respond with a `200 Queued` then the mail was sent, even if it's still enqueued on their side.
 Note2: on server responses i put some debug comments ((like this)). This would not usually be shown to the user for security purposes
 
-## Mail services
+## The project
 
-Sendgrid is used as the main service and Mailgun as its failover.
-Limitation: on test accounts on both services the sender email is fixed so it cannot be set to the user's personal email (hence why it will not be persisted on a database either)
+ExpressJS server that exposes an endpoint to send an email using Sendgrid (or Mailgun as a failover). There's also a daily quota per user to avoid abuse. Limitation: because we use test accounts in this POC for Sendgrid and Mailgun the sender email has to be fixed so it cannot be set to the user's personal email
 
 ## Auth
 
